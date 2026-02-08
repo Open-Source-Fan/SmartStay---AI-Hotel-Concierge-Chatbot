@@ -1,7 +1,7 @@
 ## SmartStay – AI Hotel Concierge Chatbot
 
 ### Overview
-SmartStay is an AI-powered hotel concierge chatbotbuilt for the Gen AI 4 GenZ Hackathon to improve guest experience and reduce operational load using compressed knowledge (ScaleDown).
+SmartStay is an AI-powered hotel concierge chatbot built for the Gen AI 4 GenZ Hackathon to improve guest experience and reduce operational load using compressed knowledge.
 
 ### System Design
 - Frontend: HTML, CSS, JavaScript
