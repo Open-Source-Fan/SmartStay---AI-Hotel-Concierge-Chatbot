@@ -4,6 +4,10 @@ SmartStay is a premium AI-powered hotel concierge web application built for the 
 It enhances guest experience by providing instant, multilingual, and intelligent hotel services while reducing staff workload using compressed knowledge (ScaleDown).
 
 ---
+**LIVE DEMO**
+https://open-source-fan.github.io/SmartStay---AI-Hotel-Concierge-Chatbot/
+
+---
 
 ## 🚀 Features
 - AI Concierge Chat (core interaction)
