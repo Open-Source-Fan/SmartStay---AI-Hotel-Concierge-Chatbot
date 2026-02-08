@@ -44,14 +44,23 @@ It enhances guest experience by providing instant, multilingual, and intelligent
 smartstay-ai-hotel-concierge-chatbot/
 │
 ├── index.html
+|
 ├── README.md
+|
 ├── LICENSE
+|
 ├── docs/
+|
 │   └── project-documentation.md
+|
 └── assets/
+    |
     └── screenshots/
+        |
         ├── dashboard.png
+        |
         ├── concierge-chat.png
+        |
         └── insights.png
         
 ---
