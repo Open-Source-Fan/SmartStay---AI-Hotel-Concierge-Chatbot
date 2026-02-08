@@ -1,0 +1,3611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartStay – AI Hotel Concierge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            /* Luxury Color Palette */
+            --champagne: #F4E8C1;
+            --gold: #D4AF37;
+            --deep-navy: #0A1128;
+            --midnight: #1C2541;
+            --slate: #3A506B;
+            --charcoal: #1E1E1E;
+            --ivory: #FFFEF7;
+            --bronze: #CD7F32;
+            --silver: #C0C0C0;
+            --rose-gold: #B76E79;
+            --emerald: #2D5F5D;
+            --warm-white: #FAF9F6;
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--deep-navy) 0%, var(--midnight) 50%, var(--slate) 100%);
+            --gradient-gold: linear-gradient(135deg, var(--gold) 0%, var(--bronze) 100%);
+            --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            
+            /* Effects */
+            --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-hard: 0 8px 30px rgba(0, 0, 0, 0.3);
+            --glow-gold: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: var(--gradient-primary);
+            color: var(--warm-white);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Background Animation */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(45, 95, 93, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(183, 110, 121, 0.05) 0%, transparent 50%);
+            animation: ambient 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes ambient {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(5%, 5%) rotate(5deg); }
+            66% { transform: translate(-5%, 3%) rotate(-3deg); }
+        }
+
+        /* Main Container */
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .app-header {
+            padding: 30px 40px;
+            backdrop-filter: blur(20px);
+            background: rgba(10, 17, 40, 0.7);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 32px;
+            font-weight: 700;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3)); }
+            50% { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6)); }
+        }
+
+        .tagline {
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--champagne);
+            opacity: 0.7;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab {
+            padding: 12px 28px;
+            border: none;
+            background: transparent;
+            color: var(--champagne);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-gold);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-tab:hover::before {
+            left: 0;
+        }
+
+        .nav-tab:hover {
+            color: var(--deep-navy);
+        }
+
+        .nav-tab.active {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            box-shadow: var(--glow-gold);
+        }
+
+        /* Main Content Area */
+        .content-area {
+            padding: 40px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            opacity: 0.5;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hard);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        /* ===== DASHBOARD PAGE ===== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .guest-profile {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .profile-header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .guest-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--gradient-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 15px;
+            box-shadow: var(--glow-gold);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .guest-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--champagne);
+        }
+
+        .room-number {
+            font-size: 14px;
+            color: var(--gold);
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .guest-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .detail-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--champagne);
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .loyalty-tier {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        /* Smart Cards Grid */
+        .smart-cards-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .card-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--champagne);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            font-size: 24px;
+        }
+
+        .request-item, .service-item, .highlight-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid var(--gold);
+            transition: all 0.3s ease;
+        }
+
+        .request-item:hover, .service-item:hover, .highlight-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .item-content h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--warm-white);
+        }
+
+        .item-content p {
+            font-size: 12px;
+            color: var(--champagne);
+            opacity: 0.95;
+        }
+
+        .item-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFD700;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .status-active {
+            background: rgba(76, 175, 80, 0.2);
+            color: #90EE90;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        /* Quick Actions */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            color: var(--warm-white);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .action-btn:hover {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            transform: translateY(-3px);
+            box-shadow: var(--glow-gold);
+        }
+
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .action-label {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== CONCIERGE CHAT PAGE ===== */
+        .chat-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            height: calc(100vh - 220px);
+        }
+
+        .chat-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .language-selector {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .language-selector h4 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gold);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .language-selector select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(10, 17, 40, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            border-radius: 10px;
+            color: var(--champagne);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23D4AF37' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+
+        .language-selector select:hover {
+            background: rgba(10, 17, 40, 0.95);
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .language-selector select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        .language-selector select option {
+            background: var(--deep-navy);
+            color: var(--champagne);
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .quick-suggestions {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .suggestion-btn {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            color: var(--champagne);
+            font-size: 13px;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-btn:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: rgba(212, 175, 55, 0.3);
+            transform: translateX(5px);
+        }
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 20px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-header h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            color: var(--gold);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: messageSlide 0.4s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .message.bot .message-avatar {
+            background: var(--gradient-gold);
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, var(--emerald) 0%, var(--slate) 100%);
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .message.bot .message-content {
+            background: rgba(255, 255, 255, 0.08);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--emerald) 0%, rgba(45, 95, 93, 0.8) 100%);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--champagne);
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .smart-suggestions-inline {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .suggestion-chip {
+            padding: 8px 16px;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+        }
+
+        .chat-input-area {
+            padding: 20px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 15px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 25px;
+            color: var(--warm-white);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--gold);
+            box-shadow: var(--glow-gold);
+        }
+
+        .voice-btn, .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .voice-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--champagne);
+        }
+
+        .voice-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        .voice-btn.active {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            animation: voicePulse 1s ease-in-out infinite;
+        }
+
+        @keyframes voicePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .send-btn {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            box-shadow: var(--glow-gold);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* ===== EXPLORE PAGE ===== */
+        .explore-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .explore-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 36px;
+            font-weight: 600;
+            color: var(--champagne);
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            color: var(--champagne);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+        }
+
+        .explore-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .section-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .attractions-grid, .dining-grid, .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .attraction-card, .dining-card, .event-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .attraction-card:hover, .dining-card:hover, .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hard);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, var(--slate) 0%, var(--midnight) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .attraction-card:hover .card-image::before,
+        .dining-card:hover .card-image::before,
+        .event-card:hover .card-image::before {
+            left: 100%;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-body h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--champagne);
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--gold);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(212, 175, 55, 0.15);
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .card-body p {
+            font-size: 13px;
+            color: var(--champagne);
+            opacity: 0.95;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            line-height: 1.5;
+        }
+
+        /* ===== INSIGHTS PAGE ===== */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .metric-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .metric-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--champagne);
+            opacity: 0.7;
+        }
+
+        .metric-change {
+            font-size: 13px;
+            margin-top: 8px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .metric-change.positive {
+            background: rgba(76, 175, 80, 0.2);
+            color: #90EE90;
+        }
+
+        .metric-change.negative {
+            background: rgba(244, 67, 54, 0.2);
+            color: #FF6B6B;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--champagne);
+            margin-bottom: 25px;
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--champagne);
+            opacity: 0.5;
+            font-size: 14px;
+        }
+
+        /* Feedback Rating */
+        .rating-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .rating-star {
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.3;
+        }
+
+        .rating-star:hover,
+        .rating-star.active {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        /* Gamification */
+        .points-banner {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--glow-gold);
+        }
+
+        .points-info h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .points-info p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .points-value {
+            font-size: 48px;
+            font-weight: 700;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.4);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.6);
+        }
+
+        /* Modal System */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--gradient-primary);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.4s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--champagne);
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            transform: rotate(90deg);
+        }
+
+        .modal-header {
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: var(--champagne);
+            opacity: 0.8;
+        }
+
+        .modal-content {
+            margin-bottom: 30px;
+        }
+
+        .modal-section {
+            margin-bottom: 25px;
+        }
+
+        .modal-section h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--champagne);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-section p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--warm-white);
+            opacity: 0.9;
+        }
+
+        .modal-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .modal-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--gold);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-primary {
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            box-shadow: var(--glow-gold);
+        }
+
+        .modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(212, 175, 55, 0.5);
+        }
+
+        .modal-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--champagne);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Success/Confirmation Message */
+        .success-message {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-message p {
+            color: #90EE90;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Form Elements in Modal */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--champagne);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            color: var(--warm-white);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Notification Toast */
+        .notification-toast {
+            position: fixed;
+            top: 100px;
+            right: 40px;
+            background: var(--gradient-gold);
+            color: var(--deep-navy);
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            display: none;
+            animation: slideInRight 0.4s ease;
+        }
+
+        .notification-toast.active {
+            display: block;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notification-icon {
+            font-size: 28px;
+        }
+
+        .notification-text h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .notification-text p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chat-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chat-sidebar {
+                display: none;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav-tabs {
+                width: 100%;
+                overflow-x: auto;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .quick-actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .attractions-grid, .dining-grid, .events-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: var(--gold);
+            border-radius: 50%;
+            animation: loadingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes loadingBounce {
+            0%, 80%, 100% { 
+                transform: scale(0);
+            } 
+            40% { 
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-section">
+                <div>
+                    <div class="logo">SmartStay</div>
+                    <div class="tagline">AI Hotel Concierge</div>
+                </div>
+            </div>
+            
+            <nav class="nav-tabs">
+                <button class="nav-tab active" onclick="switchPage('dashboard')">Dashboard</button>
+                <button class="nav-tab" onclick="switchPage('concierge')">Concierge Chat</button>
+                <button class="nav-tab" onclick="switchPage('explore')">Explore</button>
+                <button class="nav-tab" onclick="switchPage('insights')">Insights</button>
+            </nav>
+        </header>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- DASHBOARD PAGE -->
+            <div id="dashboard" class="page active">
+                <!-- Gamification Points Banner -->
+                <div class="points-banner">
+                    <div class="points-info">
+                        <h3>SmartStay Rewards</h3>
+                        <p>Earn points for using SmartStay features & unlock exclusive perks</p>
+                    </div>
+                    <div class="points-value">1,240</div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Guest Profile -->
+                    <div class="guest-profile glass-card">
+                        <div class="profile-header">
+                            <div class="guest-avatar">👤</div>
+                            <div class="guest-name">Rohit Kapoor</div>
+                            <div class="room-number">Suite 1847</div>
+                            <span class="status-badge">In-Stay</span>
+                        </div>
+                        
+                        <div class="guest-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Language</div>
+                                <div class="detail-value">English 🇺🇸</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Loyalty Tier</div>
+                                <div class="detail-value">
+                                    <span class="loyalty-tier">PLATINUM</span>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Check-In</div>
+                                <div class="detail-value">Feb 5, 3:00 PM</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Check-Out</div>
+                                <div class="detail-value">Feb 9, 11:00 AM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Smart Cards -->
+                    <div class="smart-cards-grid">
+                        <div class="glass-card">
+                            <h3 class="card-title">
+                                <span class="card-icon">📋</span>
+                                Pending Requests
+                            </h3>
+                            <div class="request-item" onclick="viewRequest('breakfast')">
+                                <div class="item-content">
+                                    <h4>Room Service - Breakfast</h4>
+                                    <p>Ordered 15 minutes ago</p>
+                                </div>
+                                <span class="item-status status-active">En Route</span>
+                            </div>
+                            <div class="request-item" onclick="viewRequest('checkout')">
+                                <div class="item-content">
+                                    <h4>Late Checkout Request</h4>
+                                    <p>Requested for Feb 9, 2:00 PM</p>
+                                </div>
+                                <span class="item-status status-pending">Pending</span>
+                            </div>
+                            <div class="request-item" onclick="viewRequest('housekeeping')">
+                                <div class="item-content">
+                                    <h4>Housekeeping</h4>
+                                    <p>Scheduled for 2:00 PM today</p>
+                                </div>
+                                <span class="item-status status-active">Confirmed</span>
+                            </div>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3 class="card-title">
+                                <span class="card-icon">⭐</span>
+                                Popular Services
+                            </h3>
+                            <div class="service-item" onclick="quickAction('breakfast')">
+                                <div class="item-content">
+                                    <h4>Breakfast at Palace Restaurant</h4>
+                                    <p>6:30 AM - 10:30 AM • 2nd Floor</p>
+                                </div>
+                            </div>
+                            <div class="service-item" onclick="quickAction('spa')">
+                                <div class="item-content">
+                                    <h4>Spa & Wellness Center</h4>
+                                    <p>Book your relaxation session</p>
+                                </div>
+                            </div>
+                            <div class="service-item" onclick="quickAction('airport')">
+                                <div class="item-content">
+                                    <h4>Airport Transfer</h4>
+                                    <p>Complimentary shuttle service</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card">
+                            <h3 class="card-title">
+                                <span class="card-icon">🎉</span>
+                                Today's Highlights
+                            </h3>
+                            <div class="highlight-item" onclick="viewEvent('jazz')">
+                                <div class="item-content">
+                                    <h4>Live Jazz at Sky Lounge</h4>
+                                    <p>Tonight at 8:00 PM • Rooftop</p>
+                                </div>
+                            </div>
+                            <div class="highlight-item" onclick="viewEvent('wine')">
+                                <div class="item-content">
+                                    <h4>Wine Tasting Event</h4>
+                                    <p>6:00 PM - 8:00 PM • Palace Restaurant</p>
+                                </div>
+                            </div>
+                            <div class="highlight-item" onclick="viewEvent('museum')">
+                                <div class="item-content">
+                                    <h4>City Museum Exhibition</h4>
+                                    <p>10-min walk • Modern Art Showcase</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="glass-card">
+                    <h3 class="card-title">
+                        <span class="card-icon">⚡</span>
+                        Quick Actions
+                    </h3>
+                    <div class="quick-actions-grid">
+                        <button class="action-btn" onclick="quickAction('roomservice')">
+                            <div class="action-icon">🍽️</div>
+                            <div class="action-label">Order Room Service</div>
+                        </button>
+                        <button class="action-btn" onclick="quickAction('spa')">
+                            <div class="action-icon">💆</div>
+                            <div class="action-label">Book Spa / Gym</div>
+                        </button>
+                        <button class="action-btn" onclick="quickAction('housekeeping')">
+                            <div class="action-icon">🧹</div>
+                            <div class="action-label">Request Housekeeping</div>
+                        </button>
+                        <button class="action-btn" onclick="quickAction('issue')">
+                            <div class="action-icon">🔧</div>
+                            <div class="action-label">Report an Issue</div>
+                        </button>
+                        <button class="action-btn" onclick="quickAction('airport')">
+                            <div class="action-icon">✈️</div>
+                            <div class="action-label">Airport Pickup</div>
+                        </button>
+                        <button class="action-btn" onclick="quickAction('checkout')">
+                            <div class="action-icon">🕐</div>
+                            <div class="action-label">Late Checkout</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONCIERGE CHAT PAGE -->
+            <div id="concierge" class="page">
+                <div class="chat-container">
+                    <!-- Chat Sidebar -->
+                    <div class="chat-sidebar">
+                        <div class="glass-card language-selector">
+                            <h4>🌐 Select Language</h4>
+                            <select id="languageSelect" onchange="changeLanguage()">
+                                <option value="en">🇺🇸 English</option>
+                                <option value="es">🇪🇸 Español</option>
+                                <option value="fr">🇫🇷 Français</option>
+                                <option value="de">🇩🇪 Deutsch</option>
+                                <option value="zh">🇨🇳 中文</option>
+                                <option value="ja">🇯🇵 日本語</option>
+                            </select>
+                        </div>
+
+                        <div class="glass-card quick-suggestions">
+                            <h4 style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin-bottom: 15px; font-weight: 600;">💡 Quick Suggestions</h4>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('What time is breakfast served?')">What time is breakfast?</button>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('I need Wi-Fi password')">Wi-Fi password</button>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('Book a table for dinner')">Book dinner table</button>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('Recommend nearby attractions')">Nearby attractions</button>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('Order room service')">Order room service</button>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('Schedule spa treatment')">Spa appointment</button>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('Request wake-up call')">Wake-up call</button>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('Arrange airport transfer')">Airport transfer</button>
+                            <button class="suggestion-btn" onclick="sendQuickMessage('Check my bill')">View my bill</button>
+                        </div>
+                    </div>
+
+                    <!-- Main Chat -->
+                    <div class="chat-main">
+                        <div class="chat-header">
+                            <h3>AI Concierge Assistant</h3>
+                            <p style="font-size: 12px; color: var(--champagne); opacity: 0.7; margin-top: 5px;">Available 24/7 in your preferred language</p>
+                        </div>
+
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message bot">
+                                <div class="message-avatar">🏨</div>
+                                <div>
+                                    <div class="message-content">
+                                        Good evening, Rohit! Welcome to SmartStay Concierge. I'm here to make your stay exceptional. How may I assist you today?
+                                        <div class="smart-suggestions-inline">
+                                            <span class="suggestion-chip" onclick="sendQuickMessage('Show me the breakfast menu')">Breakfast menu</span>
+                                            <span class="suggestion-chip" onclick="sendQuickMessage('What events are happening today?')">Today's events</span>
+                                            <span class="suggestion-chip" onclick="sendQuickMessage('Book spa session')">Spa booking</span>
+                                        </div>
+                                    </div>
+                                    <div class="message-time" id="welcomeTime"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-area">
+                            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+                            <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything about your stay...">
+                            <button class="send-btn" onclick="sendMessage()">➤</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPLORE PAGE -->
+            <div id="explore" class="page">
+                <div class="explore-header">
+                    <h2 class="explore-title">Discover & Explore</h2>
+                    <div class="filters">
+                        <button class="filter-btn active" onclick="filterExplore('all')">All</button>
+                        <button class="filter-btn" onclick="filterExplore('family')">👨‍👩‍👧 Family-Friendly</button>
+                        <button class="filter-btn" onclick="filterExplore('romantic')">💕 Romantic</button>
+                        <button class="filter-btn" onclick="filterExplore('budget')">💰 Budget</button>
+                        <button class="filter-btn" onclick="filterExplore('luxury')">✨ Luxury</button>
+                        <button class="filter-btn" onclick="filterExplore('walking')">🚶 Walking Distance</button>
+                    </div>
+                </div>
+
+                <div class="explore-sections">
+                    <!-- Nearby Attractions -->
+                    <section>
+                        <h3 class="section-title">
+                            <span>🏛️</span>
+                            Nearby Attractions
+                        </h3>
+                        <div class="attractions-grid">
+                            <div class="attraction-card" data-category="family walking" onclick="viewAttraction('museum')">
+                                <div class="card-image">🎭</div>
+                                <div class="card-body">
+                                    <h4>Grand City Museum</h4>
+                                    <div class="card-meta">
+                                        <span>📍 0.8 km</span>
+                                        <span>⭐ 4.8</span>
+                                        <span>⏱️ 2-3 hours</span>
+                                    </div>
+                                    <p>World-renowned museum featuring contemporary art, historical artifacts, and interactive exhibitions.</p>
+                                </div>
+                            </div>
+                            <div class="attraction-card" data-category="romantic walking family" onclick="viewAttraction('gardens')">
+                                <div class="card-image">🌳</div>
+                                <div class="card-body">
+                                    <h4>Central Botanical Gardens</h4>
+                                    <div class="card-meta">
+                                        <span>📍 1.2 km</span>
+                                        <span>⭐ 4.9</span>
+                                        <span>⏱️ 1-2 hours</span>
+                                    </div>
+                                    <p>Serene gardens with exotic plants, walking trails, and beautiful photo opportunities.</p>
+                                </div>
+                            </div>
+                            <div class="attraction-card" data-category="budget family" onclick="viewAttraction('oldtown')">
+                                <div class="card-image">🏰</div>
+                                <div class="card-body">
+                                    <h4>Historic Old Town</h4>
+                                    <div class="card-meta">
+                                        <span>📍 2.0 km</span>
+                                        <span>⭐ 4.7</span>
+                                        <span>⏱️ 3-4 hours</span>
+                                    </div>
+                                    <p>Charming cobblestone streets, artisan shops, and authentic local cuisine in a medieval setting.</p>
+                                </div>
+                            </div>
+                            <div class="attraction-card" data-category="walking budget" onclick="viewAttraction('artgallery')">
+                                <div class="card-image">🎨</div>
+                                <div class="card-body">
+                                    <h4>Modern Art Gallery District</h4>
+                                    <div class="card-meta">
+                                        <span>📍 1.5 km</span>
+                                        <span>⭐ 4.6</span>
+                                        <span>⏱️ 2-3 hours</span>
+                                    </div>
+                                    <p>Cutting-edge contemporary art galleries, street murals, and creative spaces.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Food & Dining -->
+                    <section>
+                        <h3 class="section-title">
+                            <span>🍽️</span>
+                            Food & Dining
+                        </h3>
+                        <div class="dining-grid">
+                            <div class="dining-card" data-category="romantic family walking" onclick="viewDining('italian')">
+                                <div class="card-image">🍕</div>
+                                <div class="card-body">
+                                    <h4>La Trattoria Italiana</h4>
+                                    <div class="card-meta">
+                                        <span>📍 0.5 km</span>
+                                        <span>⭐ 4.8</span>
+                                        <span>💰💰💰</span>
+                                    </div>
+                                    <p>Authentic Italian cuisine with wood-fired pizzas and homemade pasta.</p>
+                                </div>
+                            </div>
+                            <div class="dining-card" data-category="luxury romantic walking" onclick="viewDining('sushi')">
+                                <div class="card-image">🍣</div>
+                                <div class="card-body">
+                                    <h4>Sakura Sushi Bar</h4>
+                                    <div class="card-meta">
+                                        <span>📍 0.3 km</span>
+                                        <span>⭐ 4.9</span>
+                                        <span>💰💰💰💰</span>
+                                    </div>
+                                    <p>Premium Japanese dining with fresh sashimi, omakase experience, and sake pairings.</p>
+                                </div>
+                            </div>
+                            <div class="dining-card" data-category="budget walking family" onclick="viewDining('coffee')">
+                                <div class="card-image">☕</div>
+                                <div class="card-body">
+                                    <h4>Artisan Coffee House</h4>
+                                    <div class="card-meta">
+                                        <span>📍 0.2 km</span>
+                                        <span>⭐ 4.7</span>
+                                        <span>💰💰</span>
+                                    </div>
+                                    <p>Specialty coffee, fresh pastries, and cozy atmosphere perfect for working or relaxing.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Events Today -->
+                    <section>
+                        <h3 class="section-title">
+                            <span>🎪</span>
+                            Events Today
+                        </h3>
+                        <div class="events-grid">
+                            <div class="event-card" data-category="romantic luxury" onclick="bookEvent('jazz')">
+                                <div class="card-image">🎵</div>
+                                <div class="card-body">
+                                    <h4>Jazz Night at Sky Lounge</h4>
+                                    <div class="card-meta">
+                                        <span>📍 Hotel Rooftop</span>
+                                        <span>🕐 8:00 PM</span>
+                                    </div>
+                                    <p>Live jazz performance with panoramic city views and signature cocktails.</p>
+                                </div>
+                            </div>
+                            <div class="event-card" data-category="romantic luxury" onclick="bookEvent('wine')">
+                                <div class="card-image">🍷</div>
+                                <div class="card-body">
+                                    <h4>Wine Tasting Experience</h4>
+                                    <div class="card-meta">
+                                        <span>📍 Palace Restaurant</span>
+                                        <span>🕐 6:00 PM</span>
+                                    </div>
+                                    <p>Curated selection of international wines with expert sommelier guidance.</p>
+                                </div>
+                            </div>
+                            <div class="event-card" data-category="family budget walking" onclick="viewAttraction('artexhibition')">
+                                <div class="card-image">🎨</div>
+                                <div class="card-body">
+                                    <h4>Local Art Exhibition</h4>
+                                    <div class="card-meta">
+                                        <span>📍 City Gallery</span>
+                                        <span>🕐 All Day</span>
+                                    </div>
+                                    <p>Featured collection from emerging local artists showcasing urban landscapes.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Experiences -->
+                    <section>
+                        <h3 class="section-title">
+                            <span>🎯</span>
+                            Curated Experiences
+                        </h3>
+                        <div class="events-grid">
+                            <div class="event-card" data-category="family budget" onclick="bookExperience('biketour')">
+                                <div class="card-image">🚴</div>
+                                <div class="card-body">
+                                    <h4>City Bike Tour</h4>
+                                    <div class="card-meta">
+                                        <span>⏱️ 3 hours</span>
+                                        <span>💰 $45</span>
+                                    </div>
+                                    <p>Guided cycling tour through historic landmarks and hidden gems.</p>
+                                </div>
+                            </div>
+                            <div class="event-card" data-category="family romantic" onclick="bookExperience('culinary')">
+                                <div class="card-image">🍜</div>
+                                <div class="card-body">
+                                    <h4>Culinary Walking Tour</h4>
+                                    <div class="card-meta">
+                                        <span>⏱️ 4 hours</span>
+                                        <span>💰 $75</span>
+                                    </div>
+                                    <p>Taste authentic local cuisine at 6 different restaurants with expert guide.</p>
+                                </div>
+                            </div>
+                            <div class="event-card" data-category="family luxury" onclick="bookExperience('hiking')">
+                                <div class="card-image">🏔️</div>
+                                <div class="card-body">
+                                    <h4>Mountain Hiking Adventure</h4>
+                                    <div class="card-meta">
+                                        <span>⏱️ Full Day</span>
+                                        <span>💰 $120</span>
+                                    </div>
+                                    <p>Guided hike to scenic viewpoints with transportation and lunch included.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- INSIGHTS PAGE -->
+            <div id="insights" class="page">
+                <h2 class="explore-title" style="margin-bottom: 30px;">Analytics & Performance</h2>
+
+                <!-- Metrics Grid -->
+                <div class="insights-grid">
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">💬</div>
+                        <div class="metric-value">2,847</div>
+                        <div class="metric-label">Requests Handled</div>
+                        <div class="metric-change positive">↑ 23% vs last week</div>
+                    </div>
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">⚡</div>
+                        <div class="metric-value">1.2s</div>
+                        <div class="metric-label">Avg Response Time</div>
+                        <div class="metric-change positive">↓ 0.3s faster</div>
+                    </div>
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">🎯</div>
+                        <div class="metric-value">84%</div>
+                        <div class="metric-label">AI Token Reduction</div>
+                        <div class="metric-change positive">↑ 12% efficiency</div>
+                    </div>
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">📈</div>
+                        <div class="metric-value">67%</div>
+                        <div class="metric-label">Staff Efficiency Gain</div>
+                        <div class="metric-change positive">↑ 15% improvement</div>
+                    </div>
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">📞</div>
+                        <div class="metric-value">-42%</div>
+                        <div class="metric-label">Front Desk Calls</div>
+                        <div class="metric-change positive">Significant reduction</div>
+                    </div>
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon">⭐</div>
+                        <div class="metric-value">4.9</div>
+                        <div class="metric-label">Satisfaction Score</div>
+                        <div class="metric-change positive">↑ 0.3 points</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-card glass-card">
+                        <h3 class="chart-title">Daily Request Volume</h3>
+                        <canvas id="dailyRequestsChart" style="max-height: 300px;"></canvas>
+                    </div>
+                    <div class="chart-card glass-card">
+                        <h3 class="chart-title">Request Categories</h3>
+                        <canvas id="requestCategoriesChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Guest Satisfaction -->
+                <div class="glass-card" style="margin-top: 30px;">
+                    <h3 class="card-title">
+                        <span class="card-icon">💝</span>
+                        Guest Satisfaction Trends
+                    </h3>
+                    <canvas id="satisfactionChart" style="max-height: 300px;"></canvas>
+                </div>
+
+                <!-- Staff Efficiency -->
+                <div class="glass-card" style="margin-top: 30px;">
+                    <h3 class="card-title">
+                        <span class="card-icon">📊</span>
+                        Staff Efficiency & Front Desk Call Reduction
+                    </h3>
+                    <canvas id="efficiencyChart" style="max-height: 300px;"></canvas>
+                </div>
+
+                <!-- Feedback Section -->
+                <div class="glass-card" style="margin-top: 30px;">
+                    <h3 class="card-title">
+                        <span class="card-icon">🎭</span>
+                        Rate Your SmartStay Experience
+                    </h3>
+                    <p style="text-align: center; margin-bottom: 20px; color: var(--champagne);">
+                        Help us improve by rating your experience with SmartStay
+                    </p>
+                    <div class="rating-container">
+                        <span class="rating-star" onclick="rate(1)">⭐</span>
+                        <span class="rating-star" onclick="rate(2)">⭐</span>
+                        <span class="rating-star" onclick="rate(3)">⭐</span>
+                        <span class="rating-star" onclick="rate(4)">⭐</span>
+                        <span class="rating-star" onclick="rate(5)">⭐</span>
+                    </div>
+                    <p id="ratingFeedback" style="text-align: center; margin-top: 15px; color: var(--gold); font-size: 14px;"></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal System -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-close" onclick="closeModal()">✕</div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="notification-toast" id="notificationToast">
+        <div class="notification-content">
+            <div class="notification-icon" id="notificationIcon">✓</div>
+            <div class="notification-text">
+                <h4 id="notificationTitle">Success!</h4>
+                <p id="notificationMessage">Action completed successfully</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== ANALYTICS & LOCALSTORAGE SYSTEM =====
+        
+        let analytics = {
+            totalRequests: 2847,
+            avgResponseTime: 1.2,
+            aiTokenReduction: 84,
+            staffEfficiency: 67,
+            frontDeskReduction: 42,
+            satisfactionScore: 4.9,
+            rewardPoints: 1240,
+            dailyRequests: [120, 135, 142, 128, 156, 148, 139, 165, 172, 158, 145, 167, 180, 175, 163, 188, 195, 182, 176, 201, 210, 198, 205, 215, 208, 222, 230, 225, 240, 235],
+            requestCategories: {
+                'Room Service': 998,
+                'Concierge': 798,
+                'Housekeeping': 512,
+                'Maintenance': 341,
+                'Complaints': 198
+            },
+            satisfactionTrend: [4.2, 4.3, 4.3, 4.4, 4.5, 4.5, 4.6, 4.6, 4.7, 4.7, 4.8, 4.8, 4.8, 4.9, 4.9],
+            efficiencyData: {
+                staffEfficiency: [45, 48, 52, 55, 58, 62, 65, 67],
+                frontDeskCalls: [100, 92, 85, 78, 70, 65, 60, 58]
+            }
+        };
+
+        // Load analytics from localStorage
+        function loadAnalytics() {
+            const saved = localStorage.getItem('smartstay_analytics');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                analytics = { ...analytics, ...parsed };
+            }
+        }
+
+        // Save analytics to localStorage
+        function saveAnalytics() {
+            localStorage.setItem('smartstay_analytics', JSON.stringify(analytics));
+        }
+
+        // Update analytics counters
+        function updateAnalytics(category) {
+            analytics.totalRequests++;
+            
+            if (category === 'roomservice') {
+                analytics.requestCategories['Room Service']++;
+            } else if (category === 'spa' || category === 'gym') {
+                analytics.requestCategories['Concierge']++;
+            } else if (category === 'housekeeping') {
+                analytics.requestCategories['Housekeeping']++;
+            } else if (category === 'issue' || category === 'complaint') {
+                analytics.requestCategories['Complaints']++;
+            } else {
+                analytics.requestCategories['Concierge']++;
+            }
+            
+            // Update daily requests (add to today)
+            analytics.dailyRequests[analytics.dailyRequests.length - 1]++;
+            
+            // Update metrics
+            updateMetricDisplays();
+            
+            // Update charts if on insights page
+            if (document.getElementById('insights').classList.contains('active')) {
+                updateAllCharts();
+            }
+            
+            saveAnalytics();
+        }
+
+        // Update metric displays
+        function updateMetricDisplays() {
+            const metrics = document.querySelectorAll('.metric-value');
+            if (metrics.length > 0) {
+                metrics[0].textContent = analytics.totalRequests.toLocaleString();
+                metrics[1].textContent = analytics.avgResponseTime.toFixed(1) + 's';
+                metrics[2].textContent = analytics.aiTokenReduction + '%';
+                metrics[3].textContent = analytics.staffEfficiency + '%';
+                metrics[4].textContent = '-' + analytics.frontDeskReduction + '%';
+                metrics[5].textContent = analytics.satisfactionScore.toFixed(1);
+            }
+            
+            // Update reward points on dashboard
+            const pointsDisplay = document.querySelector('.points-value');
+            if (pointsDisplay) {
+                pointsDisplay.textContent = analytics.rewardPoints.toLocaleString();
+            }
+        }
+
+        // Add reward points
+        function addRewardPoints(points) {
+            analytics.rewardPoints += points;
+            saveAnalytics();
+            updateMetricDisplays();
+        }
+
+        // ===== CHART.JS SETUP =====
+        
+        let charts = {};
+
+        function initializeCharts() {
+            const chartColors = {
+                gold: '#D4AF37',
+                champagne: '#F4E8C1',
+                bronze: '#CD7F32',
+                emerald: '#2D5F5D',
+                slate: '#3A506B',
+                midnight: '#1C2541',
+                warm: 'rgba(244, 232, 193, 0.8)',
+                warmFill: 'rgba(244, 232, 193, 0.1)'
+            };
+
+            Chart.defaults.color = chartColors.champagne;
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+            Chart.defaults.font.family = 'Montserrat';
+
+            // Daily Requests Chart
+            const dailyCtx = document.getElementById('dailyRequestsChart');
+            if (dailyCtx) {
+                charts.daily = new Chart(dailyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: 30}, (_, i) => `Day ${i + 1}`),
+                        datasets: [{
+                            label: 'Guest Requests',
+                            data: analytics.dailyRequests,
+                            borderColor: chartColors.gold,
+                            backgroundColor: chartColors.warmFill,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: chartColors.gold,
+                            pointBorderColor: chartColors.champagne,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(10, 17, 40, 0.9)',
+                                titleColor: chartColors.gold,
+                                bodyColor: chartColors.champagne,
+                                borderColor: chartColors.gold,
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: chartColors.champagne }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { 
+                                    color: chartColors.champagne,
+                                    maxRotation: 0,
+                                    autoSkip: true,
+                                    maxTicksLimit: 10
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Request Categories Chart
+            const categoriesCtx = document.getElementById('requestCategoriesChart');
+            if (categoriesCtx) {
+                charts.categories = new Chart(categoriesCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(analytics.requestCategories),
+                        datasets: [{
+                            data: Object.values(analytics.requestCategories),
+                            backgroundColor: [
+                                chartColors.gold,
+                                chartColors.bronze,
+                                chartColors.emerald,
+                                chartColors.slate,
+                                chartColors.midnight
+                            ],
+                            borderColor: 'rgba(10, 17, 40, 0.9)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    color: chartColors.champagne,
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(10, 17, 40, 0.9)',
+                                titleColor: chartColors.gold,
+                                bodyColor: chartColors.champagne,
+                                borderColor: chartColors.gold,
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                        return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Satisfaction Trend Chart
+            const satisfactionCtx = document.getElementById('satisfactionChart');
+            if (satisfactionCtx) {
+                charts.satisfaction = new Chart(satisfactionCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13', 'Week 14', 'Week 15'],
+                        datasets: [{
+                            label: 'Satisfaction Score',
+                            data: analytics.satisfactionTrend,
+                            borderColor: chartColors.emerald,
+                            backgroundColor: 'rgba(45, 95, 93, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: chartColors.emerald,
+                            pointBorderColor: chartColors.champagne,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(10, 17, 40, 0.9)',
+                                titleColor: chartColors.gold,
+                                bodyColor: chartColors.champagne,
+                                borderColor: chartColors.gold,
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Rating: ${context.parsed.y.toFixed(1)} ⭐`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: 3.5,
+                                max: 5,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { 
+                                    color: chartColors.champagne,
+                                    callback: function(value) {
+                                        return value.toFixed(1) + ' ⭐';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: chartColors.champagne }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Efficiency Chart
+            const efficiencyCtx = document.getElementById('efficiencyChart');
+            if (efficiencyCtx) {
+                charts.efficiency = new Chart(efficiencyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Month 1', 'Month 2', 'Month 3', 'Month 4', 'Month 5', 'Month 6', 'Month 7', 'Month 8'],
+                        datasets: [
+                            {
+                                label: 'Staff Efficiency Gain %',
+                                data: analytics.efficiencyData.staffEfficiency,
+                                borderColor: chartColors.gold,
+                                backgroundColor: chartColors.warmFill,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: chartColors.gold,
+                                pointRadius: 5
+                            },
+                            {
+                                label: 'Front Desk Calls (% of baseline)',
+                                data: analytics.efficiencyData.frontDeskCalls,
+                                borderColor: chartColors.bronze,
+                                backgroundColor: 'rgba(205, 127, 50, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: chartColors.bronze,
+                                pointRadius: 5
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    color: chartColors.champagne,
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(10, 17, 40, 0.9)',
+                                titleColor: chartColors.gold,
+                                bodyColor: chartColors.champagne,
+                                borderColor: chartColors.gold,
+                                borderWidth: 1,
+                                padding: 12
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { 
+                                    color: chartColors.champagne,
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: chartColors.champagne }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateAllCharts() {
+            if (charts.daily) {
+                charts.daily.data.datasets[0].data = analytics.dailyRequests;
+                charts.daily.update();
+            }
+            if (charts.categories) {
+                charts.categories.data.datasets[0].data = Object.values(analytics.requestCategories);
+                charts.categories.update();
+            }
+            if (charts.satisfaction) {
+                charts.satisfaction.data.datasets[0].data = analytics.satisfactionTrend;
+                charts.satisfaction.update();
+            }
+            if (charts.efficiency) {
+                charts.efficiency.data.datasets[0].data = analytics.efficiencyData.staffEfficiency;
+                charts.efficiency.data.datasets[1].data = analytics.efficiencyData.frontDeskCalls;
+                charts.efficiency.update();
+            }
+        }
+
+        // ===== INITIALIZATION =====
+        
+        loadAnalytics();
+        document.getElementById('welcomeTime').textContent = getCurrentTime();
+
+        // Language persistence
+        let currentLanguage = 'en';
+        
+        // Load saved language
+        function loadLanguage() {
+            const saved = localStorage.getItem('smartstay_language');
+            if (saved) {
+                currentLanguage = saved;
+                document.getElementById('languageSelect').value = currentLanguage;
+            }
+        }
+        
+        // Save language
+        function saveLanguage() {
+            localStorage.setItem('smartstay_language', currentLanguage);
+        }
+        
+        loadLanguage();
+
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit', 
+                hour12: true 
+            });
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        
+        function showNotification(title, message, icon = '✓') {
+            const toast = document.getElementById('notificationToast');
+            document.getElementById('notificationTitle').textContent = title;
+            document.getElementById('notificationMessage').textContent = message;
+            document.getElementById('notificationIcon').textContent = icon;
+            
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3500);
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== event.currentTarget && !event.target.classList.contains('modal-close')) {
+                return;
+            }
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function openModal(content) {
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        // ===== PAGE NAVIGATION =====
+        
+        function switchPage(pageId) {
+            // Update tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+
+            // Initialize charts when switching to insights page
+            if (pageId === 'insights') {
+                setTimeout(() => {
+                    if (Object.keys(charts).length === 0) {
+                        initializeCharts();
+                    } else {
+                        updateAllCharts();
+                    }
+                    updateMetricDisplays();
+                }, 100);
+            }
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ===== QUICK ACTIONS FROM DASHBOARD =====
+        
+        function quickAction(action) {
+            const actions = {
+                'roomservice': {
+                    message: 'I would like to order room service',
+                    page: 'concierge',
+                    category: 'roomservice'
+                },
+                'spa': {
+                    message: 'I want to book a spa appointment',
+                    page: 'concierge',
+                    category: 'spa'
+                },
+                'housekeeping': {
+                    message: 'I need housekeeping service for my room',
+                    page: 'concierge',
+                    category: 'housekeeping'
+                },
+                'issue': {
+                    message: 'I want to report an issue with my room',
+                    page: 'concierge',
+                    category: 'issue'
+                },
+                'airport': {
+                    message: 'I need to arrange airport transfer',
+                    page: 'concierge',
+                    category: 'concierge'
+                },
+                'checkout': {
+                    message: 'Can I request a late checkout?',
+                    page: 'concierge',
+                    category: 'concierge'
+                },
+                'breakfast': {
+                    message: 'Tell me about the breakfast menu and timing',
+                    page: 'concierge',
+                    category: 'concierge'
+                }
+            };
+
+            const actionData = actions[action];
+            if (actionData) {
+                // Update analytics
+                updateAnalytics(actionData.category);
+                
+                // Switch to concierge page
+                const tabs = document.querySelectorAll('.nav-tab');
+                tabs.forEach(tab => tab.classList.remove('active'));
+                tabs[1].classList.add('active');
+                
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                document.getElementById(actionData.page).classList.add('active');
+                
+                // Send message
+                setTimeout(() => {
+                    sendQuickMessage(actionData.message);
+                }, 300);
+            }
+        }
+
+        // ===== VIEW REQUEST DETAILS =====
+        
+        function viewRequest(type) {
+            const requests = {
+                'breakfast': {
+                    title: 'Room Service - Breakfast',
+                    status: 'En Route',
+                    time: 'Ordered 15 minutes ago',
+                    details: 'Continental breakfast with fresh orange juice',
+                    eta: '5-10 minutes',
+                    items: ['Croissants & Pastries', 'Scrambled Eggs', 'Fresh Orange Juice', 'Coffee']
+                },
+                'checkout': {
+                    title: 'Late Checkout Request',
+                    status: 'Pending Approval',
+                    time: 'Requested 1 hour ago',
+                    details: 'Extended checkout until 2:00 PM',
+                    eta: 'Confirmation within 30 minutes',
+                    items: []
+                },
+                'housekeeping': {
+                    title: 'Housekeeping Service',
+                    status: 'Confirmed',
+                    time: 'Scheduled for 2:00 PM today',
+                    details: 'Full room cleaning and turndown service',
+                    eta: 'Today at 2:00 PM',
+                    items: ['Room Cleaning', 'Bed Making', 'Towel Refresh', 'Amenity Restock']
+                }
+            };
+
+            const request = requests[type];
+            if (!request) return;
+
+            const itemsHTML = request.items.length > 0 ? `
+                <div class="modal-section">
+                    <h4>📋 Items Included</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        ${request.items.map(item => `<li style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">• ${item}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : '';
+
+            openModal(`
+                <div class="modal-header">
+                    <div class="modal-title">${request.title}</div>
+                    <div class="modal-subtitle">${request.time}</div>
+                </div>
+                <div class="modal-content">
+                    <div class="modal-meta">
+                        <div class="modal-meta-item">📍 Suite 1847</div>
+                        <div class="modal-meta-item">⏱️ ${request.eta}</div>
+                        <div class="modal-meta-item">✓ ${request.status}</div>
+                    </div>
+                    <div class="modal-section">
+                        <h4>📝 Details</h4>
+                        <p>${request.details}</p>
+                    </div>
+                    ${itemsHTML}
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Close</button>
+                    <button class="modal-btn modal-btn-primary" onclick="modifyRequest('${type}')">Modify Request</button>
+                </div>
+            `);
+        }
+
+        function modifyRequest(type) {
+            closeModal();
+            showNotification('Opening Chat', 'Let me help you modify this request', '💬');
+            setTimeout(() => {
+                quickAction(type === 'breakfast' ? 'roomservice' : type);
+            }, 500);
+        }
+
+        // ===== VIEW EVENT DETAILS =====
+        
+        function viewEvent(eventType) {
+            const events = {
+                'jazz': {
+                    title: 'Live Jazz at Sky Lounge',
+                    time: 'Tonight at 8:00 PM',
+                    location: 'Hotel Rooftop',
+                    description: 'Experience an unforgettable evening with live jazz performances by renowned artists. Enjoy panoramic city views while sipping on signature cocktails.',
+                    price: 'Complimentary for hotel guests',
+                    dress: 'Smart Casual'
+                },
+                'wine': {
+                    title: 'Wine Tasting Experience',
+                    time: '6:00 PM - 8:00 PM',
+                    location: 'Palace Restaurant',
+                    description: 'Join our expert sommelier for an exclusive wine tasting journey featuring premium wines from around the world.',
+                    price: '$45 per person (Platinum: $36)',
+                    dress: 'Casual Elegant'
+                },
+                'museum': {
+                    title: 'City Museum Exhibition',
+                    time: 'All Day',
+                    location: '0.8 km away (10-min walk)',
+                    description: 'Modern Art Showcase featuring contemporary pieces from emerging local artists. Interactive exhibitions and guided tours available.',
+                    price: '$15 entry (We can arrange tickets)',
+                    dress: 'Casual'
+                }
+            };
+
+            const event = events[eventType];
+            if (!event) return;
+
+            openModal(`
+                <div class="modal-header">
+                    <div class="modal-title">${event.title}</div>
+                    <div class="modal-subtitle">${event.time}</div>
+                </div>
+                <div class="modal-content">
+                    <div class="modal-meta">
+                        <div class="modal-meta-item">📍 ${event.location}</div>
+                        <div class="modal-meta-item">💰 ${event.price}</div>
+                        <div class="modal-meta-item">👔 ${event.dress}</div>
+                    </div>
+                    <div class="modal-section">
+                        <h4>ℹ️ About This Event</h4>
+                        <p>${event.description}</p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Not Interested</button>
+                    <button class="modal-btn modal-btn-primary" onclick="bookEventConfirm('${eventType}')">Reserve Spot</button>
+                </div>
+            `);
+        }
+
+        function bookEventConfirm(eventType) {
+            closeModal();
+            showNotification('Reservation Confirmed! 🎉', 'Your spot has been reserved. Details sent to your room.', '✓');
+            
+            // Add points
+            setTimeout(() => {
+                showNotification('Reward Points Earned!', '+50 points for booking through SmartStay', '🌟');
+            }, 2000);
+        }
+
+        // ===== VIEW ATTRACTION DETAILS =====
+        
+        function viewAttraction(attractionType) {
+            const attractions = {
+                'museum': {
+                    title: 'Grand City Museum',
+                    distance: '0.8 km (10-min walk)',
+                    rating: '4.8 ⭐',
+                    duration: '2-3 hours',
+                    description: 'World-renowned museum featuring contemporary art, historical artifacts, and interactive exhibitions. Currently showcasing "Urban Evolution" - a multimedia exploration of city development.',
+                    hours: '9:00 AM - 6:00 PM (Tue-Sun)',
+                    price: '$15 adults, $10 students',
+                    highlights: ['Contemporary Art Gallery', 'Historical Artifacts', 'Interactive Exhibits', 'Museum Café']
+                },
+                'gardens': {
+                    title: 'Central Botanical Gardens',
+                    distance: '1.2 km (15-min walk)',
+                    rating: '4.9 ⭐',
+                    duration: '1-2 hours',
+                    description: 'Serene 50-acre gardens featuring exotic plants from around the world, walking trails, koi ponds, and beautiful photo opportunities. Perfect for a peaceful afternoon.',
+                    hours: '7:00 AM - 7:00 PM (Daily)',
+                    price: 'Free admission',
+                    highlights: ['Rose Garden', 'Japanese Tea House', 'Tropical Greenhouse', 'Walking Trails']
+                },
+                'oldtown': {
+                    title: 'Historic Old Town',
+                    distance: '2.0 km (25-min walk or 8-min drive)',
+                    rating: '4.7 ⭐',
+                    duration: '3-4 hours',
+                    description: 'Charming medieval district with cobblestone streets, artisan shops, traditional restaurants, and historic architecture. Don\'t miss the weekly craft market!',
+                    hours: 'Always open (shops 10 AM - 8 PM)',
+                    price: 'Free to explore',
+                    highlights: ['Artisan Craft Market', 'Historic Cathedral', 'Traditional Restaurants', 'Street Performers']
+                },
+                'artgallery': {
+                    title: 'Modern Art Gallery District',
+                    distance: '1.5 km (18-min walk)',
+                    rating: '4.6 ⭐',
+                    duration: '2-3 hours',
+                    description: 'Cutting-edge contemporary art district featuring multiple galleries, street art installations, creative studios, and trendy cafés.',
+                    hours: '11:00 AM - 8:00 PM (Wed-Sun)',
+                    price: 'Varies by gallery (some free)',
+                    highlights: ['Modern Installations', 'Street Murals', 'Artist Studios', 'Creative Workshops']
+                },
+                'artexhibition': {
+                    title: 'Local Art Exhibition',
+                    distance: '1.0 km (12-min walk)',
+                    rating: '4.7 ⭐',
+                    duration: 'All Day',
+                    description: 'Featured collection from emerging local artists showcasing urban landscapes and contemporary themes.',
+                    hours: '10:00 AM - 6:00 PM',
+                    price: 'Free admission',
+                    highlights: ['Urban Photography', 'Abstract Paintings', 'Sculpture Garden', 'Artist Talks']
+                }
+            };
+
+            const attraction = attractions[attractionType];
+            if (!attraction) return;
+
+            const highlightsHTML = attraction.highlights.map(h => `
+                <li style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">✓ ${h}</li>
+            `).join('');
+
+            openModal(`
+                <div class="modal-header">
+                    <div class="modal-title">${attraction.title}</div>
+                    <div class="modal-subtitle">${attraction.rating} • ${attraction.duration}</div>
+                </div>
+                <div class="modal-content">
+                    <div class="modal-meta">
+                        <div class="modal-meta-item">📍 ${attraction.distance}</div>
+                        <div class="modal-meta-item">🕐 ${attraction.hours}</div>
+                        <div class="modal-meta-item">💰 ${attraction.price}</div>
+                    </div>
+                    <div class="modal-section">
+                        <h4>ℹ️ Description</h4>
+                        <p>${attraction.description}</p>
+                    </div>
+                    <div class="modal-section">
+                        <h4>🌟 Highlights</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            ${highlightsHTML}
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="getDirections('${attractionType}')">Get Directions</button>
+                    <button class="modal-btn modal-btn-primary" onclick="bookTickets('${attractionType}')">Book Tickets</button>
+                </div>
+            `);
+        }
+
+        function getDirections(type) {
+            closeModal();
+            
+            // Attraction coordinates (approximate)
+            const locations = {
+                'museum': { lat: 28.6139, lng: 77.2090, name: 'Grand City Museum' },
+                'gardens': { lat: 28.6129, lng: 77.2295, name: 'Central Botanical Gardens' },
+                'oldtown': { lat: 28.6271, lng: 77.2197, name: 'Historic Old Town' },
+                'artgallery': { lat: 28.6189, lng: 77.2177, name: 'Modern Art Gallery District' }
+            };
+            
+            const location = locations[type];
+            if (location) {
+                // Open Google Maps with directions
+                const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}&destination_place_id=${encodeURIComponent(location.name)}&travelmode=walking`;
+                window.open(mapsUrl, '_blank');
+                showNotification('Opening Google Maps! 🗺️', `Getting walking directions to ${location.name}`, '📍');
+            } else {
+                showNotification('Directions Ready! 🗺️', 'Opening Google Maps with walking directions', '📍');
+            }
+        }
+
+        function bookTickets(type) {
+            closeModal();
+            showNotification('Ticket Booking', 'Connecting you with the ticket desk...', '🎫');
+            setTimeout(() => {
+                quickAction('concierge');
+            }, 1000);
+        }
+
+        // ===== VIEW DINING DETAILS =====
+        
+        function viewDining(restaurantType) {
+            const restaurants = {
+                'italian': {
+                    title: 'La Trattoria Italiana',
+                    cuisine: 'Italian',
+                    distance: '0.5 km (6-min walk)',
+                    rating: '4.8 ⭐',
+                    price: '$$$',
+                    description: 'Authentic Italian trattoria serving wood-fired Neapolitan pizzas, handmade pasta, and traditional dishes. Family-owned for 30 years.',
+                    hours: '12:00 PM - 10:30 PM',
+                    specialties: ['Margherita Pizza', 'Carbonara Pasta', 'Tiramisu', 'Limoncello'],
+                    atmosphere: 'Casual, family-friendly, romantic evenings'
+                },
+                'sushi': {
+                    title: 'Sakura Sushi Bar',
+                    cuisine: 'Japanese',
+                    distance: '0.3 km (4-min walk)',
+                    rating: '4.9 ⭐',
+                    price: '$$$$',
+                    description: 'Premium Japanese dining experience with master sushi chef. Fresh daily catches, omakase tasting menu, and extensive sake selection.',
+                    hours: '5:30 PM - 11:00 PM (Dinner only)',
+                    specialties: ['Omakase Experience', 'Toro Sashimi', 'Wagyu Beef', 'Premium Sake'],
+                    atmosphere: 'Upscale, intimate, chef\'s counter available'
+                },
+                'coffee': {
+                    title: 'Artisan Coffee House',
+                    cuisine: 'Café',
+                    distance: '0.2 km (2-min walk)',
+                    rating: '4.7 ⭐',
+                    price: '$$',
+                    description: 'Third-wave coffee shop with expertly crafted espresso drinks, fresh-baked pastries, and cozy seating. Perfect for working or relaxing.',
+                    hours: '7:00 AM - 8:00 PM',
+                    specialties: ['Single-Origin Pour Over', 'Almond Croissant', 'Matcha Latte', 'Artisan Sandwiches'],
+                    atmosphere: 'Casual, cozy, WiFi available, laptop-friendly'
+                }
+            };
+
+            const restaurant = restaurants[restaurantType];
+            if (!restaurant) return;
+
+            const specialtiesHTML = restaurant.specialties.map(s => `
+                <li style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">⭐ ${s}</li>
+            `).join('');
+
+            openModal(`
+                <div class="modal-header">
+                    <div class="modal-title">${restaurant.title}</div>
+                    <div class="modal-subtitle">${restaurant.cuisine} • ${restaurant.rating}</div>
+                </div>
+                <div class="modal-content">
+                    <div class="modal-meta">
+                        <div class="modal-meta-item">📍 ${restaurant.distance}</div>
+                        <div class="modal-meta-item">💰 ${restaurant.price}</div>
+                        <div class="modal-meta-item">🕐 ${restaurant.hours}</div>
+                    </div>
+                    <div class="modal-section">
+                        <h4>ℹ️ About</h4>
+                        <p>${restaurant.description}</p>
+                    </div>
+                    <div class="modal-section">
+                        <h4>🍽️ Specialties</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            ${specialtiesHTML}
+                        </ul>
+                    </div>
+                    <div class="modal-section">
+                        <h4>🎨 Atmosphere</h4>
+                        <p>${restaurant.atmosphere}</p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="viewMenu('${restaurantType}')">View Menu</button>
+                    <button class="modal-btn modal-btn-primary" onclick="makeReservation('${restaurantType}')">Make Reservation</button>
+                </div>
+            `);
+        }
+
+        function viewMenu(type) {
+            const menus = {
+                'italian': {
+                    title: 'La Trattoria Italiana - Menu',
+                    sections: {
+                        'Appetizers': ['Bruschetta - $8', 'Caprese Salad - $10', 'Fried Calamari - $12'],
+                        'Pizzas': ['Margherita - $16', 'Pepperoni - $18', 'Quattro Formaggi - $19'],
+                        'Pasta': ['Carbonara - $22', 'Amatriciana - $20', 'Pesto Genovese - $21'],
+                        'Main Courses': ['Osso Buco - $32', 'Chicken Parmigiana - $26', 'Grilled Branzino - $30'],
+                        'Desserts': ['Tiramisu - $9', 'Panna Cotta - $8', 'Gelato - $7']
+                    }
+                },
+                'sushi': {
+                    title: 'Sakura Sushi Bar - Menu',
+                    sections: {
+                        'Sashimi': ['Toro Sashimi (5pc) - $28', 'Salmon Sashimi (8pc) - $22', 'Mixed Sashimi Platter - $45'],
+                        'Nigiri': ['Tuna Nigiri (2pc) - $12', 'Salmon Nigiri (2pc) - $10', 'Eel Nigiri (2pc) - $14'],
+                        'Rolls': ['California Roll - $12', 'Spicy Tuna Roll - $14', 'Dragon Roll - $18'],
+                        'Omakase': ['Chef\'s Choice (12pc) - $65', 'Premium Omakase (18pc) - $95'],
+                        'Sake': ['Junmai Daiginjo - $18/glass', 'Nigori Sake - $15/glass']
+                    }
+                },
+                'coffee': {
+                    title: 'Artisan Coffee House - Menu',
+                    sections: {
+                        'Coffee': ['Espresso - $4', 'Cappuccino - $5', 'Latte - $5.50', 'Pour Over - $6'],
+                        'Specialty Drinks': ['Matcha Latte - $6', 'Chai Latte - $5.50', 'Golden Milk - $6'],
+                        'Pastries': ['Almond Croissant - $4.50', 'Chocolate Croissant - $4', 'Danish - $3.50'],
+                        'Sandwiches': ['Caprese Sandwich - $10', 'Turkey Avocado - $11', 'Veggie Wrap - $9']
+                    }
+                }
+            };
+
+            const menu = menus[type];
+            if (!menu) {
+                showNotification('Menu Available', 'Opening digital menu...', '📋');
+                return;
+            }
+
+            let menuHTML = '';
+            for (const [section, items] of Object.entries(menu.sections)) {
+                menuHTML += `
+                    <div class="modal-section">
+                        <h4>🍽️ ${section}</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            ${items.map(item => `<li style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            openModal(`
+                <div class="modal-header">
+                    <div class="modal-title">${menu.title}</div>
+                    <div class="modal-subtitle">Prices subject to change</div>
+                </div>
+                <div class="modal-content" style="max-height: 400px; overflow-y: auto;">
+                    ${menuHTML}
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Close</button>
+                    <button class="modal-btn modal-btn-primary" onclick="closeModal(); makeReservation('${type}')">Make Reservation</button>
+                </div>
+            `);
+        }
+
+        function makeReservation(type) {
+            closeModal();
+            const modalContent = `
+                <div class="modal-header">
+                    <div class="modal-title">Make Reservation</div>
+                    <div class="modal-subtitle">Choose your preferred time</div>
+                </div>
+                <div class="modal-content">
+                    <form id="reservationForm" onsubmit="submitReservation(event)">
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-input" required min="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time</label>
+                            <select class="form-select" required>
+                                <option value="">Select time...</option>
+                                <option value="18:00">6:00 PM</option>
+                                <option value="18:30">6:30 PM</option>
+                                <option value="19:00">7:00 PM</option>
+                                <option value="19:30">7:30 PM</option>
+                                <option value="20:00">8:00 PM</option>
+                                <option value="20:30">8:30 PM</option>
+                                <option value="21:00">9:00 PM</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Party Size</label>
+                            <select class="form-select" required>
+                                <option value="">Select guests...</option>
+                                <option value="1">1 Guest</option>
+                                <option value="2">2 Guests</option>
+                                <option value="3">3 Guests</option>
+                                <option value="4">4 Guests</option>
+                                <option value="5">5+ Guests</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Special Requests (Optional)</label>
+                            <textarea class="form-textarea" placeholder="Dietary restrictions, special occasions, seating preferences..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="modal-btn modal-btn-primary" onclick="document.getElementById('reservationForm').dispatchEvent(new Event('submit'))">Confirm Reservation</button>
+                </div>
+            `;
+            openModal(modalContent);
+        }
+
+        function submitReservation(event) {
+            event.preventDefault();
+            closeModal();
+            
+            // Update analytics
+            updateAnalytics('concierge');
+            
+            showNotification('Reservation Confirmed! 🎉', 'Confirmation sent to Suite 1847. Enjoy your meal!', '✓');
+            setTimeout(() => {
+                showNotification('Reward Points!', '+75 points earned for dining reservation', '🌟');
+            }, 2000);
+        }
+
+        // ===== BOOK EVENT =====
+        
+        function bookEvent(eventType) {
+            const events = {
+                'jazz': 'Live Jazz at Sky Lounge - Tonight 8:00 PM',
+                'wine': 'Wine Tasting Experience - 6:00 PM',
+                'artexhibition': 'Local Art Exhibition'
+            };
+
+            const eventName = events[eventType];
+            
+            openModal(`
+                <div class="modal-header">
+                    <div class="modal-title">Book Event</div>
+                    <div class="modal-subtitle">${eventName}</div>
+                </div>
+                <div class="modal-content">
+                    <form id="eventBookingForm" onsubmit="confirmEventBooking(event, '${eventType}')">
+                        <div class="form-group">
+                            <label class="form-label">Number of Guests</label>
+                            <select class="form-select" required>
+                                <option value="">Select...</option>
+                                <option value="1">1 Guest</option>
+                                <option value="2">2 Guests</option>
+                                <option value="3">3 Guests</option>
+                                <option value="4">4 Guests</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Method</label>
+                            <select class="form-select" required>
+                                <option value="room">Call Room 1847</option>
+                                <option value="sms">Send SMS</option>
+                                <option value="email">Email Confirmation</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Special Requests (Optional)</label>
+                            <textarea class="form-textarea" placeholder="Any special preferences or requirements..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="modal-btn modal-btn-primary" onclick="document.getElementById('eventBookingForm').dispatchEvent(new Event('submit'))">Confirm Booking</button>
+                </div>
+            `);
+        }
+
+        function confirmEventBooking(event, type) {
+            event.preventDefault();
+            closeModal();
+            
+            // Update analytics
+            updateAnalytics('concierge');
+            
+            showNotification('Booking Confirmed! 🎊', 'Your spot is reserved. See you there!', '✓');
+            setTimeout(() => {
+                showNotification('Bonus Points!', '+100 reward points earned', '🌟');
+            }, 2000);
+        }
+
+        // ===== BOOK EXPERIENCE =====
+        
+        function bookExperience(experienceType) {
+            const experiences = {
+                'biketour': {
+                    title: 'City Bike Tour',
+                    duration: '3 hours',
+                    price: '$45',
+                    includes: ['Bike rental', 'Professional guide', 'Water bottle', 'Helmet']
+                },
+                'culinary': {
+                    title: 'Culinary Walking Tour',
+                    duration: '4 hours',
+                    price: '$75',
+                    includes: ['6 restaurant tastings', 'Expert food guide', 'Local history', 'Recipe cards']
+                },
+                'hiking': {
+                    title: 'Mountain Hiking Adventure',
+                    duration: 'Full Day (8 hours)',
+                    price: '$120',
+                    includes: ['Transportation', 'Professional guide', 'Lunch', 'Hiking equipment']
+                }
+            };
+
+            const exp = experiences[experienceType];
+            if (!exp) return;
+
+            const includesHTML = exp.includes.map(i => `
+                <li style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">✓ ${i}</li>
+            `).join('');
+
+            openModal(`
+                <div class="modal-header">
+                    <div class="modal-title">${exp.title}</div>
+                    <div class="modal-subtitle">${exp.duration} • ${exp.price}</div>
+                </div>
+                <div class="modal-content">
+                    <div class="modal-section">
+                        <h4>📦 Includes</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            ${includesHTML}
+                        </ul>
+                    </div>
+                    <form id="experienceForm" onsubmit="confirmExperience(event, '${experienceType}')">
+                        <div class="form-group">
+                            <label class="form-label">Preferred Date</label>
+                            <input type="date" class="form-input" required min="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Number of Participants</label>
+                            <select class="form-select" required>
+                                <option value="">Select...</option>
+                                <option value="1">1 Person</option>
+                                <option value="2">2 People</option>
+                                <option value="3">3 People</option>
+                                <option value="4">4 People</option>
+                                <option value="5">5+ People</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fitness Level</label>
+                            <select class="form-select" required>
+                                <option value="">Select...</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="modal-btn modal-btn-primary" onclick="document.getElementById('experienceForm').dispatchEvent(new Event('submit'))">Book Experience</button>
+                </div>
+            `);
+        }
+
+        function confirmExperience(event, type) {
+            event.preventDefault();
+            closeModal();
+            
+            // Update analytics
+            updateAnalytics('concierge');
+            
+            showNotification('Experience Booked! 🎉', 'Confirmation and details sent to your room', '✓');
+            setTimeout(() => {
+                showNotification('Platinum Bonus!', '+150 reward points (20% discount applied)', '💎');
+            }, 2000);
+        }
+
+        // ===== EXPLORE PAGE FILTERS =====
+        
+        function filterExplore(category) {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Get all filterable cards
+            const allCards = document.querySelectorAll('.attraction-card, .dining-card, .event-card');
+            
+            if (category === 'all') {
+                // Show all cards
+                allCards.forEach(card => {
+                    card.style.display = 'block';
+                    card.style.animation = 'fadeIn 0.4s ease';
+                });
+                showNotification('All Items Shown', 'Displaying all recommendations', '🔍');
+            } else {
+                // Filter cards by category
+                let visibleCount = 0;
+                allCards.forEach(card => {
+                    const categories = card.getAttribute('data-category') || '';
+                    
+                    if (categories.includes(category)) {
+                        card.style.display = 'block';
+                        card.style.animation = 'fadeIn 0.4s ease';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Show notification with count
+                const filterNames = {
+                    'family': 'Family-Friendly',
+                    'romantic': 'Romantic',
+                    'budget': 'Budget',
+                    'luxury': 'Luxury',
+                    'walking': 'Walking Distance'
+                };
+                
+                showNotification(
+                    `${filterNames[category]} Filter Applied`, 
+                    `Showing ${visibleCount} matching ${visibleCount === 1 ? 'item' : 'items'}`, 
+                    '🔍'
+                );
+            }
+        }
+
+        // ===== CHAT FUNCTIONALITY =====
+        
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+            
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Simulate typing indicator
+            addTypingIndicator();
+            
+            setTimeout(() => {
+                removeTypingIndicator();
+                const response = getAIResponse(message);
+                addMessage(response, 'bot');
+            }, 1200);
+        }
+
+        function sendQuickMessage(message) {
+            addMessage(message, 'user');
+            
+            addTypingIndicator();
+            
+            setTimeout(() => {
+                removeTypingIndicator();
+                const response = getAIResponse(message);
+                addMessage(response, 'bot');
+            }, 1200);
+        }
+
+        function addMessage(text, type) {
+            const container = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = type === 'bot' ? '🏨' : '👤';
+            const time = getCurrentTime();
+            
+            let suggestions = '';
+            if (type === 'bot') {
+                suggestions = `
+                    <div class="smart-suggestions-inline">
+                        <span class="suggestion-chip" onclick="sendQuickMessage('Tell me more')">Tell me more</span>
+                        <span class="suggestion-chip" onclick="sendQuickMessage('Book this service')">Book now</span>
+                        <span class="suggestion-chip" onclick="sendQuickMessage('What else can you help with?')">What else?</span>
+                    </div>
+                `;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div>
+                    <div class="message-content">
+                        ${text}
+                        ${suggestions}
+                    </div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const container = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🏨</div>
+                <div>
+                    <div class="message-content">
+                        <div class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(typingDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        function getAIResponse(message) {
+            const lower = message.toLowerCase();
+            
+            // Detect category for analytics
+            let category = 'concierge';
+            if (lower.includes('room service') || lower.includes('order') || lower.includes('food') || lower.includes('breakfast') || lower.includes('lunch') || lower.includes('dinner') || lower.includes('essen') || lower.includes('comida') || lower.includes('nourriture')) {
+                category = 'roomservice';
+            } else if (lower.includes('housekeeping') || lower.includes('clean') || lower.includes('towel') || lower.includes('limpieza') || lower.includes('ménage')) {
+                category = 'housekeeping';
+            } else if (lower.includes('issue') || lower.includes('problem') || lower.includes('broken') || lower.includes('repair') || lower.includes('not working') || lower.includes('complaint') || lower.includes('problema') || lower.includes('problème')) {
+                category = 'issue';
+            } else if (lower.includes('spa') || lower.includes('massage') || lower.includes('gym') || lower.includes('pool') || lower.includes('fitness')) {
+                category = 'spa';
+            }
+            
+            // Update analytics for this interaction
+            updateAnalytics(category);
+            
+            // Simple language-specific responses
+            if (currentLanguage === 'de') {
+                // German responses
+                if (lower.includes('frühstück') || lower.includes('breakfast')) {
+                    return "Unser Frühstücksbuffet wird im Palace Restaurant (2. Stock) von 6:30 bis 10:30 Uhr serviert. Als Platinum-Mitglied genießen Sie kostenlosen Zugang! 🍳<br><br>Möchten Sie, dass ich die Lieferung in Suite 1847 arrangiere?";
+                } else if (lower.includes('zimmerservice') || lower.includes('room service') || lower.includes('bestellen')) {
+                    return "Ich helfe Ihnen gerne bei Ihrer Zimmerservice-Bestellung! Unser vollständiges Menü ist 24/7 verfügbar. 📞<br><br>Derzeit beliebt:<br>🍳 Eier Benedict - $18<br>🥐 Croissants - $12<br>🥗 Caesar Salad - $15<br>🍝 Pasta Carbonara - $22<br>Was möchten Sie bestellen?";
+                } else if (lower.includes('spa') || lower.includes('massage')) {
+                    return "Unser Luxus-Spa ist von 9:00 bis 21:00 Uhr geöffnet. Als Platinum-Gast erhalten Sie 20% Rabatt! 💆<br><br>Verfügbar:<br>• Schwedische Massage (90min) - $96<br>• Hot Stone (75min) - $88<br>Welche Uhrzeit passt Ihnen?";
+                } else if (lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('internet') || lower.includes('passwort')) {
+                    return "WLAN-Zugangsdaten für Suite 1847: 📶<br><br><strong>Netzwerk:</strong> SmartStay-Platinum<br><strong>Passwort:</strong> Palace2024Premium<br><br>Verbindungsprobleme?";
+                } else if (lower.includes('hallo') || lower.includes('guten tag')) {
+                    return "Hallo Rohit! 👋 Wie kann ich Ihren Aufenthalt heute noch besser gestalten?<br><br>Ich kann Ihnen bei Mahlzeiten, Aktivitäten, Hotelservices helfen! ✨";
+                } else if (lower.includes('danke')) {
+                    return "Gern geschehen, Rohit! Es ist mir eine Freude, Ihnen zu helfen. ✨<br><br>Ich bin 24/7 für Sie da. Genießen Sie Ihre Zeit im SmartStay! 🌟";
+                } else {
+                    return "Ich bin hier, um Ihnen zu helfen! 🌟<br><br>Beliebte Services:<br>🍽️ Zimmerservice<br>💆 Spa & Wellness<br>🏛️ Attraktionen<br>🚗 Transfers<br><br>Wobei kann ich helfen?";
+                }
+            } else if (currentLanguage === 'es') {
+                // Spanish responses
+                if (lower.includes('desayuno') || lower.includes('breakfast')) {
+                    return "Nuestro buffet de desayuno se sirve de 6:30 AM a 10:30 AM. ¡Como miembro Platinum, disfruta de acceso gratuito! 🍳<br><br>¿Desea que organicemos la entrega en Suite 1847?";
+                } else if (lower.includes('servicio') || lower.includes('room service') || lower.includes('pedir')) {
+                    return "¡Estaré encantado de ayudarte! Nuestro menú está disponible 24/7. 📞<br><br>Popular ahora:<br>🍳 Huevos Benedict - $18<br>🥐 Croissants - $12<br>¿Qué deseas pedir?";
+                } else if (lower.includes('spa') || lower.includes('masaje')) {
+                    return "Nuestro spa está abierto de 9:00 AM a 9:00 PM. ¡20% de descuento para Platinum! 💆<br><br>Disponible:<br>• Masaje Sueco (90min) - $96<br>¿Qué hora prefiere?";
+                } else if (lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('contraseña')) {
+                    return "Credenciales Wi-Fi para Suite 1847: 📶<br><br><strong>Red:</strong> SmartStay-Platinum<br><strong>Contraseña:</strong> Palace2024Premium";
+                } else if (lower.includes('hola')) {
+                    return "¡Hola Rohit! 👋 ¿Cómo puedo mejorar tu estadía hoy?<br><br>Puedo ayudarte con comidas, actividades, servicios! ✨";
+                } else if (lower.includes('gracias')) {
+                    return "¡De nada, Rohit! Es un placer ayudarte. ✨<br><br>Estoy disponible 24/7. ¡Disfruta SmartStay! 🌟";
+                } else {
+                    return "¡Estoy aquí para ayudarte! 🌟<br><br>Servicios:<br>🍽️ Servicio de habitación<br>💆 Spa<br>🏛️ Atracciones<br>🚗 Transfers<br><br>¿En qué puedo ayudarte?";
+                }
+            } else if (currentLanguage === 'fr') {
+                // French responses
+                if (lower.includes('déjeuner') || lower.includes('breakfast') || lower.includes('petit-déjeuner')) {
+                    return "Notre buffet petit-déjeuner est servi de 6h30 à 10h30. En tant que membre Platinum, accès gratuit! 🍳<br><br>Souhaitez-vous la livraison à la Suite 1847?";
+                } else if (lower.includes('service') || lower.includes('room service') || lower.includes('commander')) {
+                    return "Je serais ravi de vous aider! Notre menu complet est disponible 24h/24. 📞<br><br>Populaire:<br>🍳 Œufs Benedict - $18<br>🥐 Croissants - $12<br>Que souhaitez-vous commander?";
+                } else if (lower.includes('spa') || lower.includes('massage')) {
+                    return "Notre spa est ouvert de 9h00 à 21h00. 20% de réduction pour Platinum! 💆<br><br>Disponible:<br>• Massage Suédois (90min) - $96<br>Quelle heure vous convient?";
+                } else if (lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('mot de passe')) {
+                    return "Identifiants Wi-Fi pour Suite 1847: 📶<br><br><strong>Réseau:</strong> SmartStay-Platinum<br><strong>Mot de passe:</strong> Palace2024Premium";
+                } else if (lower.includes('bonjour') || lower.includes('salut')) {
+                    return "Bonjour Rohit! 👋 Comment puis-je améliorer votre séjour aujourd'hui?<br><br>Je peux vous aider avec les repas, activités, services! ✨";
+                } else if (lower.includes('merci')) {
+                    return "Je vous en prie, Rohit! C'est un plaisir de vous aider. ✨<br><br>Disponible 24h/24. Profitez de SmartStay! 🌟";
+                } else {
+                    return "Je suis là pour vous aider! 🌟<br><br>Services:<br>🍽️ Service en chambre<br>💆 Spa<br>🏛️ Attractions<br>🚗 Transferts<br><br>Comment puis-je vous aider?";
+                }
+            } else if (currentLanguage === 'zh') {
+                // Chinese responses
+                if (lower.includes('早餐') || lower.includes('breakfast')) {
+                    return "早餐自助餐时间为上午6:30至10:30。白金会员免费享用！🍳<br><br>需要我安排送餐到1847套房吗？";
+                } else if (lower.includes('客房') || lower.includes('room service') || lower.includes('点餐')) {
+                    return "我很乐意帮助您订购客房服务！菜单全天24小时供应。📞<br><br>热门：<br>🍳 班尼迪克蛋 - $18<br>🥐 羊角面包 - $12<br>您想订购什么？";
+                } else if (lower.includes('spa') || lower.includes('按摩') || lower.includes('水疗')) {
+                    return "我们的豪华水疗中心营业时间为9:00至21:00。白金客人享受20%折扣！💆<br><br>可预约：<br>• 瑞典按摩（90分钟）- $96<br>什么时间最适合您？";
+                } else if (lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('密码')) {
+                    return "1847套房的Wi-Fi凭据：📶<br><br><strong>网络：</strong>SmartStay-Platinum<br><strong>密码：</strong>Palace2024Premium";
+                } else if (lower.includes('你好') || lower.includes('您好')) {
+                    return "您好Rohit！👋 我今天如何让您的住宿更加出色？<br><br>我可以帮助您处理餐饮、活动、酒店服务！✨";
+                } else if (lower.includes('谢谢') || lower.includes('感谢')) {
+                    return "不客气，Rohit！很高兴能为您服务。✨<br><br>我全天24小时随时为您服务。祝您在SmartStay度过愉快的时光！🌟";
+                } else {
+                    return "我在这里帮助您！🌟<br><br>热门服务：<br>🍽️ 客房服务<br>💆 水疗<br>🏛️ 本地景点<br>🚗 机场接送<br><br>我能为您提供什么帮助？";
+                }
+            } else if (currentLanguage === 'ja') {
+                // Japanese responses
+                if (lower.includes('朝食') || lower.includes('breakfast')) {
+                    return "朝食ビュッフェは午前6時30分から10時30分まで提供しております。プラチナ会員様は無料！🍳<br><br>スイート1847へのお届けを手配いたしましょうか？";
+                } else if (lower.includes('ルームサービス') || lower.includes('room service') || lower.includes('注文')) {
+                    return "ルームサービスのご注文をお手伝いいたします！フルメニューは24時間ご利用可能。📞<br><br>人気：<br>🍳 エッグベネディクト - $18<br>🥐 クロワッサン - $12<br>何をご注文されますか？";
+                } else if (lower.includes('spa') || lower.includes('マッサージ')) {
+                    return "スパは午前9時から午後9時まで営業。プラチナゲスト様は20％割引！💆<br><br>ご利用可能：<br>• スウェーデンマッサージ（90分）- $96<br>ご都合の良いお時間は？";
+                } else if (lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('パスワード')) {
+                    return "スイート1847のWi-Fi認証情報：📶<br><br><strong>ネットワーク：</strong>SmartStay-Platinum<br><strong>パスワード：</strong>Palace2024Premium";
+                } else if (lower.includes('こんにちは') || lower.includes('おはよう')) {
+                    return "こんにちは、Rohit様！👋 本日、ご滞在をさらに素晴らしいものにするお手伝いができますか？<br><br>お食事、アクティビティ、ホテルサービスについてお手伝いいたします！✨";
+                } else if (lower.includes('ありがとう') || lower.includes('感謝')) {
+                    return "どういたしまして、Rohit様！お手伝いできて光栄です。✨<br><br>24時間いつでもお手伝いいたします。SmartStayでの素敵な時間をお過ごしください！🌟";
+                } else {
+                    return "すべてのニーズにお応えいたします！🌟<br><br>人気サービス：<br>🍽️ ルームサービス<br>💆 スパ<br>🏛️ アトラクション<br>🚗 空港送迎<br><br>何をお手伝いいたしましょうか？";
+                }
+            }
+            
+            // Default English responses
+            if (lower.includes('breakfast') || lower.includes('morning') && lower.includes('eat')) {
+                return "Our breakfast buffet is served at Palace Restaurant (2nd Floor) from 6:30 AM to 10:30 AM. As a Platinum member, you enjoy complimentary access! 🍳<br><br>Options:<br>• Continental Breakfast (Free)<br>• Full Buffet with hot stations (Free)<br>• À la carte room service<br><br>Would you like me to arrange room service delivery to Suite 1847?";
+            } else if (lower.includes('menu') || lower.includes('food')) {
+                return "Our 24/7 room service menu includes:<br><br>🍳 Breakfast: Eggs Benedict, Pancakes, Croissants<br>🥗 Lunch: Caesar Salad, Club Sandwich, Pasta<br>🥩 Dinner: Grilled Steak, Salmon, Risotto<br>🍰 Desserts: Cheesecake, Tiramisu, Ice Cream<br>🍷 Beverages: Wine, Cocktails, Fresh Juices<br><br>What would you like to order for Suite 1847?";
+            } else if (lower.includes('room service') || lower.includes('order')) {
+                return "I'd be delighted to help you order room service! Our full menu is available 24/7. 📞<br><br>Popular right now:<br>🍳 Eggs Benedict - $18<br>🥐 Croissant Selection - $12<br>🥗 Caesar Salad - $15<br>🍝 Pasta Carbonara - $22<br>🥩 Grilled Steak - $38<br><br>What would you like to order for Suite 1847? I'll have it delivered within 25-35 minutes.";
+            } else if (lower.includes('spa') || lower.includes('massage') || lower.includes('wellness')) {
+                return "Our luxury spa is open 9:00 AM - 9:00 PM. As a Platinum guest, you receive 20% off all treatments! 💆<br><br>Available today:<br>• Swedish Massage (90min) - $120 → $96<br>• Hot Stone Therapy (75min) - $110 → $88<br>• Facial Treatment (60min) - $95 → $76<br>• Couples Massage (90min) - $220 → $176<br><br>What time works best for your appointment?";
+            } else if (lower.includes('gym') || lower.includes('fitness') || lower.includes('pool') || lower.includes('workout')) {
+                return "Fitness facilities for Platinum guests: 💪<br><br>🏊 Rooftop Pool (6 AM-10 PM, heated)<br>💪 Fitness Center (24/7, fully equipped)<br>🧘 Yoga Studio (classes at 7 AM & 6 PM)<br>🏋️ Personal Training (complimentary for Platinum)<br><br>You have priority access! Would you like to book a personal training session or yoga class?";
+            } else if (lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('internet') || lower.includes('password')) {
+                return "High-speed Wi-Fi credentials for Suite 1847: 📶<br><br><strong>Network:</strong> SmartStay-Platinum<br><strong>Password:</strong> Palace2024Premium<br><br>For Platinum guests like yourself:<br>✓ Unlimited bandwidth<br>✓ Priority connection<br>✓ Multiple device support<br><br>Any connectivity issues? I can dispatch our IT team immediately.";
+            } else if (lower.includes('checkout') || lower.includes('late')) {
+                return "I see you have a pending late checkout request for 2:00 PM on Feb 9. ⏰<br><br>Good news - as a Platinum member, late checkout is <strong>complimentary</strong>!<br><br>✓ Late checkout confirmed until 2:00 PM<br>✓ Final bill ready by 1:30 PM<br>✓ Luggage storage available<br><br>Would you like me to arrange luggage storage or airport transfer?";
+            } else if (lower.includes('airport') || lower.includes('transfer') || lower.includes('shuttle') || lower.includes('transportation')) {
+                return "Airport transfer options: ✈️<br><br><strong>Complimentary Shuttle:</strong><br>• Runs hourly (5 AM - 11 PM)<br>• 45-minute journey<br><br><strong>Private Car Service:</strong><br>🚗 Sedan - $75 (30 mins)<br>🚙 Luxury SUV - $120 (30 mins)<br>🚐 Executive Van - $150 (30 mins)<br><br>When is your flight? I'll ensure you arrive with plenty of time!";
+            } else if (lower.includes('housekeeping') || lower.includes('clean') || lower.includes('towel')) {
+                return "Housekeeping service for Suite 1847: 🧹<br><br>Available times today:<br>• Now (Express 30-min service)<br>• 2:00 PM (Already scheduled)<br>• 4:00 PM<br>• 6:00 PM (Turndown service)<br><br>Service options:<br>✓ Express cleaning<br>✓ Full turndown with amenity refresh<br>✓ Extra towels/linens<br>✓ Hypoallergenic products<br><br>What time works best?";
+            } else if (lower.includes('issue') || lower.includes('problem') || lower.includes('broken') || lower.includes('repair') || lower.includes('not working') || lower.includes('complaint')) {
+                return "I apologize for any inconvenience! I'm here to resolve this immediately. 🔧<br><br>Please describe the issue in Suite 1847:<br>• Room temperature/AC<br>• Plumbing/water<br>• Electrical/lights<br>• TV/entertainment<br>• Other<br><br>For urgent matters, I can connect you directly with our duty manager. Our maintenance team is ready to assist!";
+            } else if (lower.includes('bill') || lower.includes('charges') || lower.includes('payment') || lower.includes('invoice')) {
+                return "Current bill for Suite 1847: 💳<br><br><strong>Charges:</strong><br>Room (3 nights) - $1,347<br>Dining - $245<br>Spa services - $0<br>Incidentals - $67<br><br><strong>Subtotal:</strong> $1,659<br><strong>Platinum Credit:</strong> -$124 (1,240 points)<br><strong>Total:</strong> $1,535<br><br>Would you like a detailed breakdown sent to your email?";
+            } else if (lower.includes('restaurant') || lower.includes('dining') || lower.includes('dinner') || lower.includes('reservation')) {
+                return "Dining options at SmartStay: 🍽️<br><br>🌟 <strong>Palace Restaurant</strong> (Fine Dining)<br>Open: 6:00 PM - 11:00 PM<br>Cuisine: French-Mediterranean<br><br>🍕 <strong>Terrace Bistro</strong> (Casual)<br>Open: All Day<br>Cuisine: International<br><br>🍸 <strong>Sky Lounge</strong> (Rooftop Bar)<br>Open: 5:00 PM - 1:00 AM<br>Tonight: Live Jazz at 8 PM!<br><br>Plus: Wine Tasting at 6 PM in Palace Restaurant. Would you like a reservation?";
+            } else if (lower.includes('attraction') || lower.includes('things to do') || lower.includes('see') || lower.includes('visit') || lower.includes('nearby')) {
+                return "Top recommendations near SmartStay: 🗺️<br><br>🎭 <strong>Grand City Museum</strong><br>Distance: 0.8km (10-min walk)<br>Highlights: Contemporary art exhibition<br><br>🌳 <strong>Botanical Gardens</strong><br>Distance: 1.2km (15-min walk)<br>Highlights: Perfect for afternoon stroll<br><br>🏰 <strong>Historic Old Town</strong><br>Distance: 2km (25-min walk)<br>Highlights: Authentic local cuisine<br><br>Would you like directions, tickets, or a guided tour booking?";
+            } else if (lower.includes('thank')) {
+                return "You're very welcome, Rohit! It's my pleasure to assist you. ✨<br><br>Remember, I'm available 24/7 for anything you need during your stay:<br>• Room service & dining<br>• Spa & amenities<br>• Local recommendations<br>• Maintenance & housekeeping<br><br>Enjoy your time at SmartStay! 🌟";
+            } else if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
+                return "Hello Rohit! 👋 How wonderful to hear from you.<br><br>How can I make your stay at SmartStay even more exceptional today?<br><br>I can help with:<br>• Dining & room service 🍽️<br>• Activities & attractions 🎭<br>• Hotel services 💆<br>• Any special requests ✨<br><br>What would you like to know?";
+            } else if (lower.includes('help') || lower.includes('assist')) {
+                return "I'm here to help with everything you need! 🌟<br><br>Popular services:<br>🍽️ Room service & dining<br>💆 Spa & wellness bookings<br>🏛️ Local attractions & tours<br>🚗 Airport transfers<br>🧹 Housekeeping & maintenance<br>💳 Bill inquiries<br>🎉 Events & experiences<br><br>What would you like assistance with?";
+            } else {
+                return "I understand you need assistance with that. As your personal AI concierge, I'm here to help 24/7! 🏨<br><br>I can assist with:<br>• Room service orders 🍽️<br>• Spa & gym bookings 💆<br>• Restaurant reservations 🍷<br>• Local recommendations 🗺️<br>• Housekeeping requests 🧹<br>• Maintenance issues 🔧<br>• Bill inquiries 💳<br>• Special requests ✨<br><br>What specifically would you like help with?";
+            }
+        }
+
+        // ===== VOICE FUNCTIONALITY =====
+        
+        let voiceActive = false;
+        function toggleVoice() {
+            const btn = document.getElementById('voiceBtn');
+            voiceActive = !voiceActive;
+            
+            if (voiceActive) {
+                btn.classList.add('active');
+                showNotification('Voice Input Active', 'Listening... Speak now', '🎤');
+                // In production, this would activate Web Speech API
+                setTimeout(() => {
+                    voiceActive = false;
+                    btn.classList.remove('active');
+                    sendQuickMessage("I'd like to book a spa treatment for this afternoon");
+                }, 2000);
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        // ===== LANGUAGE CHANGE =====
+        
+        function changeLanguage() {
+            const lang = document.getElementById('languageSelect').value;
+            currentLanguage = lang;
+            saveLanguage();
+            
+            const messages = {
+                'es': '¡Hola Rohit! He cambiado al español. ¿Cómo puedo ayudarte hoy?',
+                'fr': 'Bonjour Rohit! J\'ai changé en français. Comment puis-je vous aider aujourd\'hui?',
+                'de': 'Hallo Rohit! Ich habe auf Deutsch gewechselt. Wie kann ich Ihnen heute helfen?',
+                'zh': '你好 Rohit！我已切换到中文。今天我能帮你什么？',
+                'ja': 'こんにちは Rohit！日本語に切り替えました。今日はどのようにお手伝いできますか？',
+                'en': 'Hello Rohit! I\'ve switched back to English. How can I assist you today?'
+            };
+            
+            if (messages[lang]) {
+                addMessage(messages[lang], 'bot');
+                showNotification('Language Changed', `Now communicating in ${getLanguageName(lang)}`, '🌐');
+            }
+        }
+        
+        function getLanguageName(code) {
+            const names = {
+                'en': 'English',
+                'es': 'Spanish',
+                'fr': 'French',
+                'de': 'German',
+                'zh': 'Chinese',
+                'ja': 'Japanese'
+            };
+            return names[code] || code.toUpperCase();
+        }
+        
+        // Translate responses based on current language
+        function translateResponse(englishResponse) {
+            if (currentLanguage === 'en') return englishResponse;
+            
+            // Simple translation dictionary for common phrases
+            const translations = {
+                'es': {
+                    'Hello': 'Hola',
+                    'Thank you': 'Gracias',
+                    'Welcome': 'Bienvenido',
+                    'How can I help': 'Cómo puedo ayudar',
+                    'Room service': 'Servicio de habitaciones',
+                    'Breakfast': 'Desayuno',
+                    'Spa': 'Spa',
+                    'Available': 'Disponible',
+                    'today': 'hoy'
+                },
+                'fr': {
+                    'Hello': 'Bonjour',
+                    'Thank you': 'Merci',
+                    'Welcome': 'Bienvenue',
+                    'How can I help': 'Comment puis-je vous aider',
+                    'Room service': 'Service en chambre',
+                    'Breakfast': 'Petit-déjeuner',
+                    'Spa': 'Spa',
+                    'Available': 'Disponible',
+                    'today': 'aujourd\'hui'
+                },
+                'de': {
+                    'Hello': 'Hallo',
+                    'Thank you': 'Danke',
+                    'Welcome': 'Willkommen',
+                    'How can I help': 'Wie kann ich helfen',
+                    'Room service': 'Zimmerservice',
+                    'Breakfast': 'Frühstück',
+                    'Spa': 'Spa',
+                    'Available': 'Verfügbar',
+                    'today': 'heute'
+                },
+                'zh': {
+                    'Hello': '你好',
+                    'Thank you': '谢谢',
+                    'Welcome': '欢迎',
+                    'How can I help': '我能帮你什么',
+                    'Room service': '客房服务',
+                    'Breakfast': '早餐',
+                    'Spa': '水疗',
+                    'Available': '可用',
+                    'today': '今天'
+                },
+                'ja': {
+                    'Hello': 'こんにちは',
+                    'Thank you': 'ありがとう',
+                    'Welcome': 'ようこそ',
+                    'How can I help': 'どのようにお手伝いできますか',
+                    'Room service': 'ルームサービス',
+                    'Breakfast': '朝食',
+                    'Spa': 'スパ',
+                    'Available': '利用可能',
+                    'today': '今日'
+                }
+            };
+            
+            if (currentLanguage !== 'en' && translations[currentLanguage]) {
+                // Add language prefix to show response is in selected language
+                const langPrefix = {
+                    'es': '[Español] ',
+                    'fr': '[Français] ',
+                    'de': '[Deutsch] ',
+                    'zh': '[中文] ',
+                    'ja': '[日本語] '
+                };
+                return langPrefix[currentLanguage] + englishResponse;
+            }
+            
+            return englishResponse;
+        }
+
+        // ===== RATING SYSTEM =====
+        
+        function rate(stars) {
+            document.querySelectorAll('.rating-star').forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            
+            const feedback = document.getElementById('ratingFeedback');
+            const messages = [
+                'We appreciate your feedback and will work to improve.',
+                'Thank you for your feedback. We\'ll do better!',
+                'Thanks for rating! We value your input.',
+                'Great! Thank you for the positive feedback! 😊',
+                'Excellent! We\'re thrilled you love SmartStay! 🌟'
+            ];
+            
+            feedback.textContent = messages[stars - 1];
+            
+            // Update satisfaction score in analytics
+            const newScore = stars;
+            analytics.satisfactionTrend.push(newScore);
+            if (analytics.satisfactionTrend.length > 15) {
+                analytics.satisfactionTrend.shift();
+            }
+            
+            // Recalculate average satisfaction
+            const avgSatisfaction = analytics.satisfactionTrend.reduce((a, b) => a + b, 0) / analytics.satisfactionTrend.length;
+            analytics.satisfactionScore = avgSatisfaction;
+            
+            // Add 50 reward points
+            addRewardPoints(50);
+            
+            saveAnalytics();
+            updateMetricDisplays();
+            
+            if (document.getElementById('insights').classList.contains('active')) {
+                updateAllCharts();
+            }
+            
+            // Add points animation
+            setTimeout(() => {
+                feedback.textContent += ' +50 Reward Points!';
+                showNotification('Thank You!', `${stars}-star rating recorded. +50 points earned! Total: ${analytics.rewardPoints}`, '⭐');
+            }, 500);
+        }
+
+        // ===== ENTER KEY TO SEND =====
+        
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // ===== INITIALIZE ANIMATIONS =====
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Stagger card animations
+            const cards = document.querySelectorAll('.glass-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>
